@@ -1,6 +1,6 @@
 #an intermediate object for holding data between sources and sinks. This is where transformations will take place, as well as union, intersect, etc.
 
-class inProg:
+class DataTransform:
     def __init__(self, importDat):
         #local variables:
         self.dat = importDat
@@ -49,18 +49,33 @@ class inProg:
         if tst == 'nan': #not sure how this is possible, but it is
             return '0000-00-00'
         out = parse(val)
+        out = out.strftime('%Y-%m-%d')
+        return out
+
+    #fix timestamps as needed
+    def timeTransform(self,val):
+        from dateutil.parser import parse
+        if val != val: #check for NaN again
+            return '0000-00-00'
+        tst = str(val)
+        if tst == 'nan': #not sure how this is possible, but it is
+            return '0000-00-00'
+        out = parse(val)
         out = out.strftime('%Y-%m-%d %H:%M:%S')
         return out
 
     #can be called to fix timestamps pandas screwed up
-    def applyFixDate(self):
+    def fixDates(self,notime=False):
         import numpy as np
         self.defineTimeColsToFix()
         for col in self.timeColsToFix:
             #make string so dateutil can parse:
             self.dat[col] = self.dat[col].astype('str')
             #format correctly
-            self.dat[col] = self.dat[col].apply(self.dateTransform)
+            if notime:
+                self.dat[col] = self.dat[col].apply(self.dateTransform)
+            else:
+                self.dat[col] = self.dat[col].apply(self.timeTransform)
             #ensure pandas sees it as a timestamp
             self.dat[col] = self.dat[col].astype('datetime64[ns]')
 
@@ -108,7 +123,7 @@ class inProg:
         import uuid
         #add column
         self.dat.loc[:, "UUID"] = 1
-        #add UUID efficiently with a transform:
+        #add UUID to each row efficiently with a transform:
         self.dat.loc[0:, "UUID"] = self.dat.UUID.transform(lambda a: str(uuid.uuid4()))
 
 

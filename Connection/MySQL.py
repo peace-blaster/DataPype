@@ -47,7 +47,7 @@ class MySQL:
 
     #objectively, guessing good column types will be difficult
     #best we can do is be a little generous going off of pandas.dtypes
-    #it would be possible to use MySQL's built-in optimizer to alter table after creation for optimal types, but it tends to overuse enum, and won't do any future-proofing.
+    #it would be possible to use MySQL's built-in optimizer to alter table after creation for optimal types, but it tends to overuse enum, and is too aggressive to be future-proof.
     def makeSQLColumnTypes(self):
         import numpy as np
         #read column dtypes to start:
@@ -138,7 +138,7 @@ class MySQL:
 
     #close connection
     def closeConnection(self):
-        #WARNING: this will make the object unusuable until 'makeConnection()' is run again!
+        #WARNING: this will make the object unusable until 'makeConnection()' is run again!
         self.cnx.close()
 
 ##################################################################################
@@ -165,7 +165,7 @@ class MySQL:
         datUpload = datUpload.values.tolist()
         return(datUpload)
 
-    #uploads the file to specified db and table, mildly cleaning to avoid accidental SQL injection. If 'truncate=True', it will truncate.
+    #uploads the file to specified db and table, mildly cleaning to avoid accidental SQL injection. If 'truncate=True', it will truncate target table first.
     def uploadFile(self,truncate=False,dropnulls=False):
         #make cursor:
         cursor=self.cnx.cursor()
@@ -199,6 +199,7 @@ class MySQL:
                 query=query+col+', '
                 query2=query2+'%s, '
         query='INSERT INTO '+self.db+'.'+self.table+'('+query+')'+' VALUES ('+query2+')'
+        #upload in one shot with executemany()
         cursor.executemany(query, datUpload)
         self.cnx.commit()
         cursor.close()
@@ -217,7 +218,7 @@ class MySQL:
         except:
             print("Database not found")
             raise
-        #see tables in specified database:
+        #default to False until we see target table
         self.SQL_exists = False
         #see all tables in db, see if target appears
         cursor.execute('show tables;')
@@ -301,7 +302,7 @@ class MySQL:
 ##################################################################################
 ##################################################################################
 
-    #Will import all columns. Column-dropping will occur outside this object
+    #Will import all columns.
     def downloadFile(self):
         import pandas as pd
         #first, raise an error if target table doesn't exit:
@@ -323,7 +324,7 @@ class MySQL:
         #get column names from SQL
         cursor.execute('show columns from '+self.db+'.'+self.table+';')
         cols=cursor.fetchall()
-        #reformat them in a sane way:
+        #reformat them in a sane way (cursor.fetchall() makes a tuple of tuples):
         colNames=[]
         for col in cols:
             colNames.append(col[0])
