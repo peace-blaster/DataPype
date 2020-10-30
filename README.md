@@ -33,40 +33,55 @@ creates the object itself. It will create and test database connection on creati
 
 self.createSQLTable(): if target table doesn’t exist, it runs ‘makeSQLColumnTypes()’ to determine suitable MySQL data types, and creates a database with identical column names on the target database system. Note that predetermined data types will over allocate space intentionally in an effort to future proof, and will not tolerate strings greater than 2000 characters, as this seemed impractical. Will raise an exception if target table already exists, or if contained dataframe is empty.
 
-#### self.closeConnection(): closes the MySQl connection (‘cnx’). This is advised if done uploading/downloading data. Can be reconnected with ‘makeConnection()’.
+#### self.closeConnection():
+closes the MySQl connection (‘cnx’). This is advised if done uploading/downloading data. Can be reconnected with ‘makeConnection()’.
 
-#### self.checkForSQL(): checks whether ‘db’.’table’ exists on the connected host. Updates ‘SQL_exists’ as opposed to returning boolean.
+#### self.checkForSQL():
+checks whether ‘db’.’table’ exists on the connected host. Updates ‘SQL_exists’ as opposed to returning boolean.
 
-#### self.makeSQLColumnTypes(): analyzes data types in contained dataframe ‘dat’, guesses suitable SQL data types for each column, and stores them as a dict ‘SQLColTypes’. Used in ‘createSQLTable()’.
+#### self.makeSQLColumnTypes():
+analyzes data types in contained dataframe ‘dat’, guesses suitable SQL data types for each column, and stores them as a dict ‘SQLColTypes’. Used in ‘createSQLTable()’.
 
-#### self.SQLizeData(dropNulls=False): creates and returns additional data frame object appropriately sanitized for use in ‘uploadFile()’.
+#### self.SQLizeData(dropNulls=False):
+creates and returns additional data frame object appropriately sanitized for use in ‘uploadFile()’.
 - dropnulls: if true, will drop all rows in dataframe with null values. Defaults to ‘False’.
 
-#### self.uploadFile(truncate=False, dropNulls=False): uploads data from contained dataframe to target table. Runs ‘SQLizeData’ first to sanitize input.
+#### self.uploadFile(truncate=False, dropNulls=False):
+uploads data from contained dataframe to target table. Runs ‘SQLizeData’ first to sanitize input.
 - dropnulls: if true, will drop all rows in data frame with null values. Defaults to ‘False’.
 - truncate: if true, will truncate target table prior to upload. Defaults to ‘False’.
 
-#### self.makeConnection(): opens prerequisite .yaml file with connection info, and creates database connection object via mysql-connector. This is done automatically upon instantiation of MySQL object, but may be refreshed manually via this command. Credentials are not kept in memory outside the scope of this function, and possibly the contained connection object.
+#### self.makeConnection():
+opens prerequisite .yaml file with connection info, and creates database connection object via mysql-connector. This is done automatically upon instantiation of MySQL object, but may be refreshed manually via this command. Credentials are not kept in memory outside the scope of this function, and possibly the contained connection object.
 
-#### self.downloadFile(): populates contained dataframe with the contents of target table. Will fail if contained dataframe is not empty. Dataframe can be emptied via ‘purgeData()’.
+#### self.downloadFile():
+populates contained dataframe with the contents of target table. Will fail if contained dataframe is not empty. Dataframe can be emptied via ‘purgeData()’.
 
-#### self.purgeData(): initializes contained dataframe.
+#### self.purgeData():
+initializes contained dataframe.
 
 ### Attributes:
 
-#### self.dat: the contained pandas dataframe for data storage within the object itself. Can be emptied via ‘purgeData()’, and can be populated by either ‘downloadFile()’, or by directly assigning data with ‘<class instance>.dat=<some pandas dataframe>’.
+#### self.dat:
+the contained pandas dataframe for data storage within the object itself. Can be emptied via ‘purgeData()’, and can be populated by either ‘downloadFile()’, or by directly assigning data with ‘<class instance>.dat=<some pandas dataframe>’.
 
-#### self.filePath: path to the needed .yaml file with MySQL connection info.
+#### self.filePath:
+path to the needed .yaml file with MySQL connection info.
 
-#### self.cnx: the mysql-connector object created by ‘makeConnection()’. Will be made automatically when instantiating the class.
+#### self.cnx:
+the mysql-connector object created by ‘makeConnection()’. Will be made automatically when instantiating the class.
 
-#### self.db: name of database on target host system containing target table.
+#### self.db:
+name of database on target host system containing target table.
 
-#### self.table: name of target table on host system. Should not include containing database/schema- for example, ‘employees.payroll_tbl’ should have “self.db=‘employees’”, and “self.table=‘payroll_tbl’”.
+#### self.table:
+name of target table on host system. Should not include containing database/schema- for example, ‘employees.payroll_tbl’ should have “self.db=‘employees’”, and “self.table=‘payroll_tbl’”.
 
-#### self.SQL_exists: boolean for whether target table exists on connected host. Is assessed on instantiation, and can be reassessed via ‘checkForSQL()’.
+#### self.SQL_exists:
+boolean for whether target table exists on connected host. Is assessed on instantiation, and can be reassessed via ‘checkForSQL()’.
 
-#### self.SQLColTypes: dict containing column names from ‘self.dat’ and guesses at appropriate MySQL datatypes made via ‘makeSQLColumnTypes()’.
+#### self.SQLColTypes:
+dict containing column names from ‘self.dat’ and guesses at appropriate MySQL datatypes made via ‘makeSQLColumnTypes()’.
 
 
 ## CSV: 
@@ -74,32 +89,41 @@ A Connection object for importing and exporting to .csv files. Requires a path t
 
 ### Creation:
 
-##### CSV(self, filepath, filesep = ‘,’): creates object itself, and checks for file at ‘filepath’ (stored in object as ‘self.fpath’).
+##### CSV(self, filepath, filesep = ‘,’):
+creates object itself, and checks for file at ‘filepath’ (stored in object as ‘self.fpath’).
 - filepath: path to target .csv file- stored as ‘self.fpath’.
 - filesep: separator/deliminator for .csv file- stored as ‘self.sep’. Defaults to ‘,’.
 
 
 ### Methods:
 
-#### checkForFile(): checks where target .csv file exists at ‘self.fpath’
+#### checkForFile():
+checks where target .csv file exists at ‘self.fpath’
 
-#### getFile(noHeader=False): imports data from target .csv file at ‘self.fpath’ using separator ‘self.sep’, and stores in ‘self.dat’. If ‘self.dat’ is nonempty, and error is raised.
+#### getFile(noHeader=False):
+imports data from target .csv file at ‘self.fpath’ using separator ‘self.sep’, and stores in ‘self.dat’. If ‘self.dat’ is nonempty, and error is raised.
 - noHeader: if true, first row of target .csv will be interpreted as data, and column names will be populated generically as ‘c1’, ‘c2’, … in ‘self.dat’.
 
-#### purgeData(): initializes ‘self.dat’
+#### purgeData():
+initializes ‘self.dat’
 
-#### outputCSV(overwrite=False): exports contents of ‘self.dat’ into target .csv at ’self.path’, deliminated by ‘self.sep’. If file exists there, an error is raised.
+#### outputCSV(overwrite=False):
+exports contents of ‘self.dat’ into target .csv at ’self.path’, deliminated by ‘self.sep’. If file exists there, an error is raised.
 - overwrite: if true, method will overwrite file at ‘self.path’ if one is found instead of raising an error.
 
 ### Attributes:
 
-#### self.dat: the contained pandas dataframe for data storage within the object itself. Can be emptied via ‘self.purgeData()’, and can be populated by either ‘getFile()’, or by directly assigning data with ‘<class instance>.dat=<some pandas dataframe>’.
+#### self.dat:
+the contained pandas dataframe for data storage within the object itself. Can be emptied via ‘self.purgeData()’, and can be populated by either ‘getFile()’, or by directly assigning data with ‘<class instance>.dat=<some pandas dataframe>’.
 
-#### self.fpath: the path to target .csv file.
+#### self.fpath:
+the path to target .csv file.
 
-#### self.sep: the deliminator used for target .csv file.
+#### self.sep:
+the deliminator used for target .csv file.
 
-#### Self.File_exists: boolean determining whether target .csv at ‘self.fpath’ currently exists. Is set by ‘checkForFile()’.
+#### Self.File_exists:
+boolean determining whether target .csv at ‘self.fpath’ currently exists. Is set by ‘checkForFile()’.
 
 
 ## DataTransform: 
@@ -107,33 +131,44 @@ An Intermediate object used for the majority of data manipulation. Has methods f
 
 ### Creation:
 
-#### DataTransform(importDat): creates the object, imports ‘importDat’ as ‘self.dat’, and runs ‘autoFixColNames()’ to ensure future compatibility with other Connection objects.
+#### DataTransform(importDat):
+creates the object, imports ‘importDat’ as ‘self.dat’, and runs ‘autoFixColNames()’ to ensure future compatibility with other Connection objects.
 - importDat: target pandas dataframe to import
 
 ### Methods:
 
-#### autoFixColNames(): replaces ‘-‘,’ ’,’(‘,’)’ in column names with ‘_’ to prevent issues with majority of Connection objects.
+#### autoFixColNames():
+replaces ‘-‘,’ ’,’(‘,’)’ in column names with ‘_’ to prevent issues with majority of Connection objects.
 
-#### defineTimeColsToFix(): takes user input to define set of target columns for ‘fixDatetimes()’. ‘fixDatetimes()’ runs this automatically when called. This shouldn’t be called directly.
+#### defineTimeColsToFix():
+takes user input to define set of target columns for ‘fixDatetimes()’. ‘fixDatetimes()’ runs this automatically when called. This shouldn’t be called directly.
 
-#### dateTransform(val): used in fixDates. This shouldn’t be called directly.
+#### dateTransform(val):
+used in fixDates. This shouldn’t be called directly.
 
-#### timeTransform(val): used in fixDates. This shouldn’t be called directly.
+#### timeTransform(val):
+used in fixDates. This shouldn’t be called directly.
 
-#### fixDates(notime=False): takes user input using ‘defineTimeColsToFix()’, and attempts to convert wayward values to ‘YYYYMMDD HHMMSS’.
+#### fixDates(notime=False):
+takes user input using ‘defineTimeColsToFix()’, and attempts to convert wayward values to ‘YYYYMMDD HHMMSS’.
 - notime: if true, output will truncate timestamp portion, and provide just ‘YYYYMMDD’. 
 
-#### intersection(otherDf): performs a SQL-like intersection operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.concat()’ with “join=‘inner’”.
+#### intersection(otherDf):
+performs a SQL-like intersection operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.concat()’ with “join=‘inner’”.
 - otherDF: target pandas dataframe for merging.
 
-#### union(otherDf): performs a SQL-like union operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.concat()’ with “join=‘outer’”.
+#### union(otherDf):
+performs a SQL-like union operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.concat()’ with “join=‘outer’”.
 - otherDF: target pandas dataframe for merging.
 
-#### join(otherDf): performs a SQL-like join operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.merge()’ on ‘key’, defaulting to ‘inner’ behavior.
+#### join(otherDf):
+performs a SQL-like join operation of ‘self.dat’, and ‘otherDF’, then stores the result as ‘self.dat’. In particular, this actually performs a pandas ‘pandas.merge()’ on ‘key’, defaulting to ‘inner’ behavior.
 - otherDF: target pandas dataframe for merging.
 - key: common column on which to join. In SQL terms, this appears as ‘…ON A.key=B.key’
 - outer: if true, performs SQL-style left join as opposed an inner. Defaults to ‘False’. 
 
-#### purgeData(): initializes ‘self.dat’
+#### purgeData():
+initializes ‘self.dat’
 
-#### addUuid(): adds a column to ‘self.dat’ called ‘UUID’, and populates it with uuid values generated from the uuid module, in particular ‘uuid.uuid4()’.
+#### addUuid():
+adds a column to ‘self.dat’ called ‘UUID’, and populates it with uuid values generated from the uuid module, in particular ‘uuid.uuid4()’.
