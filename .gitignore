@@ -1,2 +1,5 @@
 *.csv
 *.yaml
+*.pyc
+*.__pycache__
+*.DS

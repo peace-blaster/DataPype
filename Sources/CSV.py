@@ -60,6 +60,10 @@ class CSV:
             if noHeader:
                 self.dat = pd.read_csv(self.fpath, sep = self.sep, header = None)
                 #ADD SOMETHING TO POPULATE COLUMNS- THIS LEAVES IT LITERALLY EMPTY! NOT EVEN A LIST!
+                cols=[]
+                for i in range(len(self.dat.iloc[1,:])):
+                    cols.append('c'+str(i))
+                self.dat.columns=cols
             else:
                 self.dat = pd.read_csv(self.fpath, sep = self.sep)
                 #clean columns
@@ -67,6 +71,9 @@ class CSV:
                 self.dat.columns = self.dat.columns.str.replace(' ','-')
                 self.dat.columns = self.dat.columns.str.replace(' ','(')
                 self.dat.columns = self.dat.columns.str.replace(' ',')')
+        else:
+            print('file not found')
+            raise FileNotFoundError('csv')
 
 ##################################################################################
 ##################################################################################
@@ -76,3 +83,21 @@ class CSV:
     def purgeData(self):
         import pandas as pd
         self.dat = pd.DataFrame()
+
+##################################################################################
+##################################################################################
+##################################################################################
+
+    #outputCSV(): output data as .csv with the input deliminator
+    def outputCSV(self, overwrite = False):
+        import pandas as pd
+        #make file exists
+        self.checkForFile()
+        #make sure self.dat isn't occupied
+        if self.dat.empty:
+            print('No data to write.')
+            raise RuntimeError('self.dat.empty')
+        if overwrite or not self.File_exists:
+            self.dat.to_csv(self.fpath, sep = self.sep, index = False, header = True)
+        else:
+            print('File exists. Rerun with \'overwrite=True\' to override.')
