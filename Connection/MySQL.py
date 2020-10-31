@@ -5,11 +5,12 @@
 
 class MySQL:
     #init- we go ahead and import credentials here, and specify target SQL table regardless of whether it yet exists.
-    def __init__(self,credPath,dbName,dbTable):
+    def __init__(self,credPath,dbName,dbTable,importData=[]):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>'.
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
         import pandas as pd
-        self.dat = pd.DataFrame()
+
+        self.dat = importdata #this will be updated by initial functions
 
         #this is a little ugly, but we don't want a password hanging out in the object, so it's better to go ahead and make the connection to pass around instead.
         #initially, this will take the path to credentials, and then makeConnection() in the startup tasks.
@@ -38,6 +39,10 @@ class MySQL:
         #run startup tasks:
         self.makeConnection()
         self.checkForSQL()
+        #if no input provided, make it a dataframe
+        if self.dat.isempty:
+            self.dat = pd.DataFrame()
+            
 
 ##################################################################################
 ##################################################################################

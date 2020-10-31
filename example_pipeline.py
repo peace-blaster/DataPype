@@ -14,14 +14,12 @@ ratings = ms.MySQL('/home/peaceblaster/Pyformatica/mariadbLogin.yaml', 'IMDB_EXP
 ratings.downloadFile()
 ratings.closeConnection()
 #######################################################################
-#agg1- join 'episodes' and 'ratings'
+#join 'episodes' and 'ratings'
 episode = dt.DataTransform(episodes.dat) #more efficient to overwrite object in the process so we don't hold 'dat' in memory twice
 episode.join(ratings.dat, 'episodeId')
 ratings.purgeData() #to alleviate load on system
 #######################################################################
-#outfile- output to filesystem
-outfile = ff.CSV('/home/peaceblaster/Pyformatica/tst.csv')
-outfile.dat = episode.dat
-episode.purgeData() #to alleviate load on system
+#output to filesystem
+episode = ff.CSV('/home/peaceblaster/Pyformatica/tst.csv', importData=episode.dat) #import efficiently using 'importData' parameter
 outfile.outputCSV()
 #######################################################################

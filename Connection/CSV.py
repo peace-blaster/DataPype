@@ -2,11 +2,11 @@
 
 class CSV:
     #init- no mandatory parameters! where this is used coming or going, it needs to be flexible
-    def __init__(self, filepath, filesep = ','):
+    def __init__(self, filepath, filesep = ',', importData = []):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>', or 'getFile()'
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best, so please clean headers before import.
         import pandas as pd
-        self.dat = pd.DataFrame()
+        self.dat = importData
         #path to file:
         self.fpath = filepath
         #deliminator for .csv file:
@@ -17,6 +17,9 @@ class CSV:
         #run startup tasks:
         #see if file exists at path:
         self.checkForFile()
+        #if no input provided, make it a dataframe
+        if self.dat.isempty:
+            self.dat = pd.DataFrame()
 
 
 ##################################################################################
