@@ -15,14 +15,13 @@ ratings.downloadFile()
 ratings.closeConnection()
 #######################################################################
 #agg1- join 'episodes' and 'ratings'
-agg1 = dt.DataTransform(episodes.dat)
-episodes.purgeData() #to alleviate load on system
-agg1.join(ratings.dat, 'episodeId')
+episode = dt.DataTransform(episodes.dat) #more efficient to overwrite object in the process so we don't hold 'dat' in memory twice
+episode.join(ratings.dat, 'episodeId')
 ratings.purgeData() #to alleviate load on system
 #######################################################################
 #outfile- output to filesystem
 outfile = ff.CSV('/home/peaceblaster/Pyformatica/tst.csv')
-outfile.dat = agg1.dat
-agg1.purgeData() #to alleviate load on system
+outfile.dat = episode.dat
+episode.purgeData() #to alleviate load on system
 outfile.outputCSV()
 #######################################################################
