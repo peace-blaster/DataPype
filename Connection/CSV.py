@@ -3,7 +3,7 @@
 class CSV:
     #init- no mandatory parameters! where this is used coming or going, it needs to be flexible
     def __init__(self, filepath, filesep = ',', importData = []):
-        #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead use pass in dat through the 'importdata' parameter on creation), or 'getFile()'
+        #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation), or 'getFile()'
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best, so please clean headers before import.
         import pandas as pd
         self.dat = importData
