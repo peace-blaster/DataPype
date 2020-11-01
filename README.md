@@ -23,11 +23,12 @@ a Connection object built around the mysql-connector module. It contains a panda
 
 ### Creation:
 
-#### MySQL(path, database, table):
+#### MySQL(path, database, table, importData=[]):
 creates the object itself. It will create and test database connection on creation, as well as determine if target table already exists.
 - path: a path to the required .yaml file with the hostname, username, and password to access the RDBMS.
 - database: the target database in MySQL. Must exist upon instantiation.
 - table: the target table within the target database. Can be created with ‘createSQLTable()’ if needed.
+- importData: can be used to pass pandas dataframe in on creation. This can save a lot of memory if object is created from an Intermediate as 'intrmdt=MySQL(<path>,<db>,<tbl>,intrmdt.dat)', as opposed to passing in later via 'mysqlobj.dat=intrmdt.dat' followed 'intrmdt.purgeData()'.
 
 ### Methods:
 
@@ -93,6 +94,7 @@ A Connection object for importing and exporting to .csv files. Requires a path t
 creates object itself, and checks for file at ‘filepath’ (stored in object as ‘self.fpath’).
 - filepath: path to target .csv file- stored as ‘self.fpath’.
 - filesep: separator/deliminator for .csv file- stored as ‘self.sep’. Defaults to ‘,’.
+- importData: can be used to pass pandas dataframe in on creation. This can save a lot of memory if object is created from an Intermediate as 'intrmdt=MySQL(<path>,<db>,<tbl>,intrmdt.dat)', as opposed to passing in later via 'mysqlobj.dat=intrmdt.dat' followed 'intrmdt.purgeData()'.
 
 
 ### Methods:
