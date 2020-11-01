@@ -6,7 +6,7 @@
 class MySQL:
     #init- we go ahead and import credentials here, and specify target SQL table regardless of whether it yet exists.
     def __init__(self,credPath,dbName,dbTable,importData=[]):
-        #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>'.
+        #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation).
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
         import pandas as pd
 
