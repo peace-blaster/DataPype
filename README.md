@@ -174,3 +174,6 @@ initializes ‘self.dat’
 
 #### addUuid():
 adds a column to ‘self.dat’ called ‘UUID’, and populates it with uuid values generated from the uuid module, in particular ‘uuid.uuid4()’.
+
+### Notes:
+- pandas.DataFrame.drop_duplicates is simple enough that wrapping would be pointless. To remove duplicates, see https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html, and access the Pandas df object via 'Intermediate.dat'.
