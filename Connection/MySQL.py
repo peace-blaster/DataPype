@@ -10,15 +10,15 @@ class MySQL:
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
         import pandas as pd
 
-        self.dat = importdata #this will be updated by initial functions
+        self.dat = importData #this will be updated by initial functions
 
         #this is a little ugly, but we don't want a password hanging out in the object, so it's better to go ahead and make the connection to pass around instead.
         #initially, this will take the path to credentials, and then makeConnection() in the startup tasks.
         #In the future, I would this to utilize parallel connections like Informatica does, but I'm unsure if Python can do so
         self.filePath = credPath
 
-        #self.cnx = self.makeConnection(credPath)
-        self.cnx = ''
+        self.cnx = self.makeConnection(credPath)
+        #self.cnx = ''
 
         #the table we will load to or from:
         #note you can change this later if you want to upload back to the same host
@@ -263,7 +263,7 @@ class MySQL:
         #trim unneeded fields:
         badFields=[]
         for field in loginInfo:
-            if field not in ['hostname','username','password']:
+            if field not in [p]:
                 badFields.append(field)
         for field in badFields:
             loginInfo.pop(field)
