@@ -261,7 +261,7 @@ class MySQL:
         #trim unneeded fields:
         badFields=[]
         for field in loginInfo:
-            if field not in [p]:
+            if field not in ['hostname','username','password']:
                 badFields.append(field)
         for field in badFields:
             loginInfo.pop(field)
