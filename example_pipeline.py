@@ -6,11 +6,11 @@ from Connection import CSV as ff
 from Intermediate import DataTransform as dt
 #######################################################################
 #episodes- download from MySQL
-episodes = ms.MySQL('/home/peaceblaster/Pyformatica/mariadbLogin.yaml', 'IMDB_EXPLORE','EPISODE')
+episodes = ms.MySQL('/home/peaceblaster/mariadbLogin.yaml', 'IMDB_EXPLORE','EPISODE')
 episodes.downloadFile()
 episodes.closeConnection()
 #ratings- download from MySQL
-ratings = ms.MySQL('/home/peaceblaster/Pyformatica/mariadbLogin.yaml', 'IMDB_EXPLORE','RATINGS')
+ratings = ms.MySQL('/home/peaceblaster/mariadbLogin.yaml', 'IMDB_EXPLORE','RATINGS')
 ratings.downloadFile()
 ratings.closeConnection()
 #######################################################################
