@@ -16,9 +16,7 @@ class MySQL:
         #initially, this will take the path to credentials, and then makeConnection() in the startup tasks.
         #In the future, I would this to utilize parallel connections like Informatica does, but I'm unsure if Python can do so
         self.filePath = credPath
-
-        self.cnx = self.makeConnection(credPath)
-        #self.cnx = ''
+        self.cnx = ''
 
         #the table we will load to or from:
         #note you can change this later if you want to upload back to the same host
