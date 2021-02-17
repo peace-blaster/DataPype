@@ -237,9 +237,9 @@ class MySQL:
     #import credentials for mysql-connector object, validates, connects, returns mysql-connector connection object
     #these should be a .yaml with the following:
     #
-    #hostname='foo.bar'
-    #username='foo'
-    #password='bar'
+    #hostname: 'foo.bar'
+    #username: 'foo'
+    #password: 'bar'
     #
     #Make sure the config is properly secured on your machine.
     def makeConnection(self):
