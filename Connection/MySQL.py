@@ -2,13 +2,12 @@
 #
 #This object exists to represent a MySQL or MariaDB connection (really, anything compatible with mysql-connector).
 #It holds a pandas dataframe for temporary data storage, along with methods for uploading and downloading data, as well as creating and preparing tables for such.
-
+import pandas as pd
 class MySQL:
     #init- we go ahead and import credentials here, and specify target SQL table regardless of whether it yet exists.
-    def __init__(self,credPath,dbName,dbTable,importData=[]):
+    def __init__(self,credPath,dbName,dbTable,importData=pd.DataFrame([])):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation).
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
-        import pandas as pd
 
         self.dat = importData #this will be updated by initial functions
 
@@ -38,9 +37,9 @@ class MySQL:
         self.makeConnection()
         self.checkForSQL()
         #if no input provided, make it a dataframe
-        if self.dat.isempty:
+        if self.dat.empty:
             self.dat = pd.DataFrame()
-            
+
 
 ##################################################################################
 ##################################################################################

@@ -18,7 +18,7 @@ class CSV:
         #see if file exists at path:
         self.checkForFile()
         #if no input provided, make it a dataframe
-        if not self.dat:
+        if self.dat.empty:
             self.dat = pd.DataFrame()
 
 
