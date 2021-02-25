@@ -3,13 +3,18 @@
 #This object exists to represent a MySQL or MariaDB connection (really, anything compatible with mysql-connector).
 #It holds a pandas dataframe for temporary data storage, along with methods for uploading and downloading data, as well as creating and preparing tables for such.
 import pandas as pd
+import numpy as np
 class MySQL:
     #init- we go ahead and import credentials here, and specify target SQL table regardless of whether it yet exists.
-    def __init__(self,credPath,dbName,dbTable,importData=pd.DataFrame([])):
+    def __init__(self,credPath,dbName,importData=pd.DataFrame([])):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation).
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
 
-        self.dat = importData #this will be updated by initial functions
+        if not type(importData)=='str': #I know this is hacky, but pandas doesn't use bool()
+            self.dat = importData #this will be updated by initial functions
+        #if no input provided, make it a dataframe
+        else:
+            self.dat = pd.DataFrame()
 
         #this is a little ugly, but we don't want a password hanging out in the object, so it's better to go ahead and make the connection to pass around instead.
         #initially, this will take the path to credentials, and then makeConnection() in the startup tasks.
@@ -17,41 +22,29 @@ class MySQL:
         self.filePath = credPath
         self.cnx = ''
 
-        #the table we will load to or from:
-        #note you can change this later if you want to upload back to the same host
-        self.table = dbTable
-
-        #the database we will load to or from:
+        #the database we will use
         #note you can change this later if you want to upload back to the same host
         self.db = dbName
 
-        #needed to see if SQL table exists:
-        #self.SQL_exists = self.checkForSQL()
-        self.SQL_exists = False
-
         #to store SQL column types when going pandas --> SQL. Pandas does a good enough job when going SQL --> pandas.
-        #if you change column names and run makeSQLColumnTypes() without first reinitializing this, it will append all the new columns and you'll get an error.
         self.SQLColTypes=dict()
 
         #run startup tasks:
         self.makeConnection()
-        self.checkForSQL()
-        #if no input provided, make it a dataframe
-        if self.dat.empty:
-            self.dat = pd.DataFrame()
 
+        #for use in uploading:
+        self.uploadable=[]
 
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
-#createSQLTable():
 
     #objectively, guessing good column types will be difficult
     #best we can do is be a little generous going off of pandas.dtypes
     #it would be possible to use MySQL's built-in optimizer to alter table after creation for optimal types, but it tends to overuse enum, and is too aggressive to be future-proof.
     def makeSQLColumnTypes(self):
-        import numpy as np
+        #initialize to prevent issues:
+        self.SQLColTypes=dict()
         #read column dtypes to start:
         cols = self.dat.dtypes.to_dict()
         for col in cols:
@@ -112,20 +105,19 @@ class MySQL:
 
 
     #make table for uploading:
-    def createSQLTable(self):
+    def createSQLTable(self,table):
         #check if table already exists:
-        self.checkForSQL()
-        if self.SQL_exists:
+        if self.checkForSQL(table):
             print('Table exists.')
             raise RuntimeError('MySQL table already exists')
         #get column types:
         self.makeSQLColumnTypes()
-        if not self.SQLColTypes:
+        if len(self.dat.columns) == 0:
             print('No data to upload.')
-            raise RunTimeError('No data to upload')
+            raise RuntimeError('No data to upload')
         #make cursor:
         cursor=self.cnx.cursor()
-        query='create table '+self.db+'.'+self.table+' ('
+        query='create table '+self.db+'.'+table+' ('
         for col in self.SQLColTypes:
             #no amount of warnings will make columns compliant, so we'll do some rudimentary last-second cleaning:
             query = query + col.replace(' ','_').replace('-','_').replace('(','_').replace(')','_') + ' ' + self.SQLColTypes[col] + ','
@@ -147,28 +139,14 @@ class MySQL:
 ##################################################################################
 ##################################################################################
 
-#uploadFile():
-
-    #removes potential escape characters from strings before uploading
-    def SQLizeData(self,dropnulls=False):
-        import pandas as pd
+    #uploads the file to specified db and table, mildly cleaning to avoid accidental SQL injection. If 'truncate=True', it will truncate target table first.
+    def uploadData(self,table,truncate=False,dropnulls=False):
+        #make function for later:
         def fixCell(strVal):
             strVal = strVal.replace("'", "''")
             #it'll kill the line breaks... sorry
             strVal = strVal.replace("\n", " ")
             return(strVal)
-        #clean out potential escape characters, others that could cause SQL issues
-        #make it all strings to make uploading easier
-        if dropnulls:
-            datUpload = self.dat.where((pd.notnull(self.dat)), None).astype('str') #kills nulls?
-        else:
-            datUpload = self.dat.astype('str')
-        datUpload.apply(fixCell)
-        datUpload = datUpload.values.tolist()
-        return(datUpload)
-
-    #uploads the file to specified db and table, mildly cleaning to avoid accidental SQL injection. If 'truncate=True', it will truncate target table first.
-    def uploadFile(self,truncate=False,dropnulls=False):
         #make cursor:
         cursor=self.cnx.cursor()
         #connect to database:
@@ -177,41 +155,53 @@ class MySQL:
         except:
             print("Database not found")
             raise
-        if dropnulls:
-            datUpload=self.SQLizeData(dropnulls=True)
-        else:
-            datUpload=self.SQLizeData()
-        #truncate before loading (if specified):
+        #make table if it doesn't exist
+        if not self.checkForSQL(table):
+            self.createSQLTable(table)
+        #truncate if prompted
         if truncate == True:
-            cursor.execute('truncate table ' + self.db + '.' + self.table + ';')
+            cursor.execute('truncate table '+self.db+'.'+table+';')
         #get columns from target table:
-        cursor.execute('show columns from ' + self.db + '.' + self.table + ';')
+        cursor.execute('show columns from '+self.db+'.'+table+';')
         cols = cursor.fetchall()
         #draft template insert statement:
-        query = ''
-        query2 = ''
-        count = 0
-        for i in cols:
+        preamble='INSERT INTO '+self.db+'.'+table+'('
+        for col in self.dat.columns:
+            preamble=preamble+col+','
+        #trim the extra comma
+        preamble=preamble[0:-1]+') VALUES ('
+        count=0
+        #load them up, be careful about inserts
+        for i, row in self.dat.iterrows():
             count=count+1
-            col='`'+i[0]+'`'
-            if count==len(cols): #to avoid comma issues
-                query=query+col
-                query2=query2+'%s'
-            else:
-                query=query+col+', '
-                query2=query2+'%s, '
-        query='INSERT INTO '+self.db+'.'+self.table+'('+query+')'+' VALUES ('+query2+')'
-        #upload in one shot with executemany()
-        cursor.executemany(query, datUpload)
+            query=preamble
+            #determine if quotes are needed based on data type:
+            for col in row:
+                #if col.dtype in (np.dtype('int64'),np.dtype('int16'),np.dtype('int8'),np.dtype('int_'),np.dtype('float64'),np.dtype('float32'),np.dtype('float16')):
+                if not type(col) is str:
+                    #catch nans
+                    if np.isnan(col):
+                        query=query+'NULL'+','
+                    else:
+                        query=query+str(col)+','
+                else:
+                    #make sure strings don't have line breaks or escape characters
+                    query=query+"'"+str(fixCell(col))+"',"
+            query=query[0:-1]+');'
+            cursor.execute(query)
+            #commit every 10000 rows:
+            if count==10000:
+                self.cnx.commit()
         self.cnx.commit()
         cursor.close()
+
 
 ##################################################################################
 ##################################################################################
 ##################################################################################
 
     #checkForSQL: tests whether SQL table exists.
-    def checkForSQL(self):
+    def checkForSQL(self, table):
         #make cursor:
         cursor=self.cnx.cursor()
         #connect to database:
@@ -220,14 +210,13 @@ class MySQL:
         except:
             print("Database not found")
             raise
-        #default to False until we see target table
-        self.SQL_exists = False
         #see all tables in db, see if target appears
         cursor.execute('show tables;')
         cols=cursor.fetchall()
         for col in cols:
-            if col[0]==self.table:
-                self.SQL_exists = True
+            if col[0]==table:
+                return True
+        return False
         cursor.close()
 
 ##################################################################################
@@ -305,32 +294,17 @@ class MySQL:
 ##################################################################################
 
     #Will import all columns.
-    def downloadFile(self):
+    def runQuery(self,query):
         import pandas as pd
-        #first, raise an error if target table doesn't exit:
-        #refresh SQL table status first
-        self.checkForSQL()
-        if not self.SQL_exists:
-            print('target table doesnt exist. Nothing to import.')
-            raise RuntimeError('target table doesnt exist')
         #make sure self.dat isn't occupied
-        if not self.dat.empty:
+        if not len(self.dat.columns) == 0:
             print('Data already in memory. Either run \'purgeData()\' or reinstantiate the object.')
             raise RuntimeError('self.dat occupied')
         #make cursor:
         cursor=self.cnx.cursor()
         #fetch data
-        cursor.execute('select * from '+self.db+'.'+self.table+';')
-        self.dat=pd.DataFrame(cursor.fetchall())
-        #make headers meaningful:
-        #get column names from SQL
-        cursor.execute('show columns from '+self.db+'.'+self.table+';')
-        cols=cursor.fetchall()
-        #reformat them in a sane way (cursor.fetchall() makes a tuple of tuples):
-        colNames=[]
-        for col in cols:
-            colNames.append(col[0])
-        self.dat.columns=colNames
+        cursor.execute(query)
+        self.dat=pd.DataFrame(cursor.fetchall(), columns=[desc[0] for desc in cursor.description])
 
 ##################################################################################
 ##################################################################################

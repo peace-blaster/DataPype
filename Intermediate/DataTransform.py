@@ -1,4 +1,7 @@
 #an intermediate object for holding data between sources and sinks. This is where transformations will take place, as well as union, intersect, etc.
+import pandas as pd
+import uuid
+from dateutil.parser import parse
 
 class DataTransform:
     def __init__(self, importDat):
@@ -42,7 +45,6 @@ class DataTransform:
 
     #fix timestamps as needed
     def dateTransform(self,val):
-        from dateutil.parser import parse
         if val != val: #check for NaN again
             return '0000-00-00'
         tst = str(val)
@@ -54,7 +56,6 @@ class DataTransform:
 
     #fix timestamps as needed
     def timeTransform(self,val):
-        from dateutil.parser import parse
         if val != val: #check for NaN again
             return '0000-00-00'
         tst = str(val)
@@ -66,7 +67,6 @@ class DataTransform:
 
     #can be called to fix timestamps pandas screwed up
     def fixDates(self,notime=False):
-        import numpy as np
         self.defineTimeColsToFix()
         for col in self.timeColsToFix:
             #make string so dateutil can parse:
@@ -85,7 +85,6 @@ class DataTransform:
 
     #intersection with another dataframe:
     def intersection(self,otherDf):
-        import pandas as pd
         self.dat = pd.concat(self.dat, otherDf, join='inner')
 
 ##################################################################################
@@ -94,7 +93,6 @@ class DataTransform:
 
     #union with another dataframe:
     def union(self,otherDf):
-        import pandas as pd
         self.dat = pd.concat(self.dat, otherDf, join='outer')
 
 ##################################################################################
@@ -108,11 +106,10 @@ class DataTransform:
     #To merge the other way, call this from the other object.
     #Also note that 'key' must line up between the objects-
     def join(self,otherDf,key,outer=False):
-        import pandas as pd
         if outer:
             self.dat = pd.merge(self.dat, otherDf, on=key, how='left')
         else:
-            self.dat = pd.merge(self.dat, otherDf, on=key)
+            self.dat = pd.merge(self.dat, otherDf, on=key, how='inner')
 
 ##################################################################################
 ##################################################################################
@@ -120,11 +117,10 @@ class DataTransform:
 
     #add an uuid
     def addUuid(self):
-        import uuid
         #add column
-        self.dat.loc[:, "UUID"] = 1
+        self.dat["UUID"] = 'temp'
         #add UUID to each row efficiently with a transform:
-        self.dat.loc[0:, "UUID"] = self.dat.UUID.transform(lambda a: str(uuid.uuid4()))
+        self.dat["UUID"] = self.dat.UUID.transform(lambda a: str(uuid.uuid4()))
 
 
 ##################################################################################

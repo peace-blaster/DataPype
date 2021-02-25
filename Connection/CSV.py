@@ -1,12 +1,17 @@
 #an oject for importing/exporting .csv files.
-
+import pandas as pd
 class CSV:
     #init- no mandatory parameters! where this is used coming or going, it needs to be flexible
-    def __init__(self, filepath, filesep = ',', importData = False):
+    def __init__(self, filepath, filesep = ',', importData=pd.DataFrame([])):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation), or 'getFile()'
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best, so please clean headers before import.
-        import pandas as pd
-        self.dat = importData
+        #init data:
+        if not type(importData)=='str': #I know this is hacky, but pandas doesn't use bool()
+            self.dat = importData #this will be updated by initial functions
+        #if no input provided, make it a dataframe
+        else:
+            self.dat = pd.DataFrame()
+
         #path to file:
         self.fpath = filepath
         #deliminator for .csv file:
@@ -17,10 +22,6 @@ class CSV:
         #run startup tasks:
         #see if file exists at path:
         self.checkForFile()
-        #if no input provided, make it a dataframe
-        if self.dat.empty:
-            self.dat = pd.DataFrame()
-
 
 ##################################################################################
 ##################################################################################
@@ -97,7 +98,7 @@ class CSV:
         #make file exists
         self.checkForFile()
         #make sure self.dat isn't occupied
-        if self.dat.empty:
+        if len(self.dat.columns) == 0: #I know this is hacky, but pandas doesn't use bool()
             print('No data to write.')
             raise RuntimeError('self.dat.empty')
         if overwrite or not self.File_exists:
