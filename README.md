@@ -23,9 +23,11 @@ a Connection object built around the mysql-connector module. It contains a panda
 
 ### Creation:
 
-#### MySQL(path, database, table, importData=[]):
-creates the object itself. It will create and test database connection on creation, as well as determine if target table already exists.
-- path: a path to the required .yaml file with the hostname, username, and password to access the RDBMS.
+#### MySQL(username='', password='', hostname='', dbName='', importData=[]):
+creates the object itself. It will create and test database connection on creation.
+- username: the user name for target user on the database.
+- password: password for target user.
+- hostname: IP address, or URL for the host of the database.
 - database: the target database in MySQL. Must exist upon instantiation.
 - table: the target table within the target database. Can be created with ‘createSQLTable()’ if needed.
 - importData: can be used to pass pandas dataframe in on creation. This can save a lot of memory if object is created from an Intermediate as 'intrmdt=MySQL(<path>,<db>,<tbl>,intrmdt.dat)', as opposed to passing in later via 'mysqlobj.dat=intrmdt.dat' followed 'intrmdt.purgeData()'.
@@ -43,17 +45,12 @@ checks whether ‘db’.’table’ exists on the connected host. Updates ‘SQL
 #### self.makeSQLColumnTypes():
 analyzes data types in contained dataframe ‘dat’, guesses suitable SQL data types for each column, and stores them as a dict ‘SQLColTypes’. Used in ‘createSQLTable()’.
 
-#### self.SQLizeData(dropNulls=False):
-creates and returns additional data frame object appropriately sanitized for use in ‘uploadFile()’.
-- dropnulls: if true, will drop all rows in dataframe with null values. Defaults to ‘False’.
-
-#### self.uploadFile(truncate=False, dropNulls=False):
-uploads data from contained dataframe to target table. Runs ‘SQLizeData’ first to sanitize input.
-- dropnulls: if true, will drop all rows in data frame with null values. Defaults to ‘False’.
+#### self.uploadFile(truncate=False):
+uploads data from contained dataframe to target table. Sanitizes input mildly as well.
 - truncate: if true, will truncate target table prior to upload. Defaults to ‘False’.
 
 #### self.makeConnection():
-opens prerequisite .yaml file with connection info, and creates database connection object via mysql-connector. This is done automatically upon instantiation of MySQL object, but may be refreshed manually via this command. Credentials are not kept in memory outside the scope of this function, and possibly the contained connection object.
+Creates database connection object via mysql-connector using provided credentials. This is done automatically upon instantiation of MySQL object, but may be refreshed manually via this command.
 
 #### self.downloadFile():
 populates contained dataframe with the contents of target table. Will fail if contained dataframe is not empty. Dataframe can be emptied via ‘purgeData()’.
