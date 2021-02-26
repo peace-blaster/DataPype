@@ -4,16 +4,19 @@
 from Connection import MySQL as ms
 from Connection import CSV as ff
 from Intermediate import DataTransform as dt
+from etc import readYamlCred as ryc
 #######################################################################
+#get db credentials from .yaml:
+dbCred=ryc.readYamlCred('mariadbLogin.yaml')
 #episodes- download from MySQL
-episodes = ms.MySQL('mariadbLogin.yaml', 'IMDB_EXPLORE')
+episodes = ms.MySQL(username=dbCred['username'], hostname=dbCred['hostname'], password=dbCred['password'], dbName='IMDB_EXPLORE')
 print('Starting download of episodes from MySQL...')
 episodes.runQuery('select * from IMDB_EXPLORE.EPISODE limit 200;')
 print(episodes.dat.dtypes) #pandas dataframes can still be accessed like this
 print('Download complete.')
 episodes.closeConnection()
 #ratings- download from MySQL
-ratings = ms.MySQL('mariadbLogin.yaml', 'IMDB_EXPLORE')
+ratings = ms.MySQL(username=dbCred['username'], hostname=dbCred['hostname'], password=dbCred['password'], dbName='IMDB_EXPLORE')
 print('Starting download of ratings from MySQL...')
 ratings.runQuery('select * from IMDB_EXPLORE.RATINGS;')
 print(ratings.dat.dtypes) #pandas dataframes can still be accessed like this
@@ -36,7 +39,7 @@ episodes.outputCSV()
 print('Complete.')
 #######################################################################
 #upload to the database:
-episodes = ms.MySQL('mariadbLogin.yaml', 'TST', importData=episodes.dat)
+episodes = ms.MySQL(username=dbCred['username'], hostname=dbCred['hostname'], password=dbCred['password'], dbName='TST', importData=episodes.dat)
 print('Beginning upload.')
 episodes.uploadData('tst',truncate=True)
 print('Upload complete.')

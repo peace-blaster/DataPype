@@ -1,39 +1,35 @@
-#hopefully Python is magical and figures out that MySQL is supposed to be an object.
-#
 #This object exists to represent a MySQL or MariaDB connection (really, anything compatible with mysql-connector).
 #It holds a pandas dataframe for temporary data storage, along with methods for uploading and downloading data, as well as creating and preparing tables for such.
 import pandas as pd
 import numpy as np
+import mysql.connector
 class MySQL:
-    #init- we go ahead and import credentials here, and specify target SQL table regardless of whether it yet exists.
-    def __init__(self,credPath,dbName,importData=pd.DataFrame([])):
+    #importData can be used to drastically reduce memory usage by reinstantiating objects over themselves- e.g. exampleObj=MySQL(self,username,password,hostname,dbName,importData=exampleObj.dat)
+    #this can be done with any object in this module
+    def __init__(self,username='',password='',hostname='',dbName='',importData=pd.DataFrame([])):
         #where this is intended to be used coming and going, dat will be initialized empty. Populate it via 'objName.dat=<dataframe>' (if worried about memory usage, instead pass in data through the 'importdata' parameter on creation).
         #it will expect meaningful, and SQL-compliant column names. The automatic cleaning is limited at best.
-
         if not type(importData)=='str': #I know this is hacky, but pandas doesn't use bool()
-            self.dat = importData #this will be updated by initial functions
+            self.dat = importData
         #if no input provided, make it a dataframe
         else:
             self.dat = pd.DataFrame()
-
-        #this is a little ugly, but we don't want a password hanging out in the object, so it's better to go ahead and make the connection to pass around instead.
-        #initially, this will take the path to credentials, and then makeConnection() in the startup tasks.
-        #In the future, I would this to utilize parallel connections like Informatica does, but I'm unsure if Python can do so
-        self.filePath = credPath
-        self.cnx = ''
 
         #the database we will use
         #note you can change this later if you want to upload back to the same host
         self.db = dbName
 
-        #to store SQL column types when going pandas --> SQL. Pandas does a good enough job when going SQL --> pandas.
+        #to store SQL column types when going pandas --> SQL. Pandas does a good enough job figuring it out when going SQL --> pandas.
         self.SQLColTypes=dict()
 
-        #run startup tasks:
-        self.makeConnection()
+        #login info- working on a better solution for this
+        self.username = username
+        self.password = password
+        self.hostname = hostname
 
-        #for use in uploading:
-        self.uploadable=[]
+        #connect
+        self.cnx = ''
+        self.makeConnection()
 
 ##################################################################################
 ##################################################################################
@@ -223,60 +219,12 @@ class MySQL:
 ##################################################################################
 ##################################################################################
 
-    #import credentials for mysql-connector object, validates, connects, returns mysql-connector connection object
-    #these should be a .yaml with the following:
-    #
-    #hostname: 'foo.bar'
-    #username: 'foo'
-    #password: 'bar'
-    #
-    #Make sure the config is properly secured on your machine.
     def makeConnection(self):
-        import yaml
-        import mysql.connector
-        try:
-            with open(self.filePath,'r') as file:
-                loginInfo = yaml.full_load(file)
-        #I like to provide more user-friendly error messages when possible:
-        except FileNotFoundError:
-            print('File not found at '+self.filePath)
-            raise FileNotFoundError('credential file at '+self.filePath)
-        #ensure credentials file is valid:
-        #first see if it's a .yaml at all, and that it was properly read:
-        if not type(loginInfo) is dict:
-            print('Cannot login: Provided file is incorrectly formatted, and could not be read.')
-            raise RuntimeError('bad credential file')
-        #trim unneeded fields:
-        badFields=[]
-        for field in loginInfo:
-            if field not in ['hostname','username','password']:
-                badFields.append(field)
-        for field in badFields:
-            loginInfo.pop(field)
-        #ensure all needed fields are present:
-        #hostname
-        try:
-            loginInfo['hostname']
-        except KeyError:
-            print('Cannot login: hostname not provided in credential file.') #why isn't this printing?
-            raise
-        #username
-        try:
-            loginInfo['username']
-        except KeyError:
-            print('Cannot login: username not provided in credential file.')
-            raise
-        #password
-        try:
-            loginInfo['password']
-        except KeyError:
-            print('Cannot login: password not provided in credential file.')
-            raise
         #try connection:
         try:
-            self.cnx=mysql.connector.connect(user=loginInfo['username']
-                                    , password=loginInfo['password']
-                                    , host=loginInfo['hostname'])
+            self.cnx=mysql.connector.connect(user=self.username
+                                    , password=self.password
+                                    , host=self.hostname)
         except mysql.connector.errors.InterfaceError: #2003:
             print('Cannot login: host not found')
             raise
