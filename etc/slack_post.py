@@ -11,4 +11,4 @@ def slack_post(message='', channel='bot-test', user='bottst', webhook=''):
     requests.post(webhook, headers=headers, data=data)
 
 # run it
-slack_post(message='tst', channel='bot-test', user='bottst', webhook='https://hooks.slack.com/services/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')
+#slack_post(message='tst', channel='bot-test', user='bottst', webhook='https://hooks.slack.com/services/something/something')
