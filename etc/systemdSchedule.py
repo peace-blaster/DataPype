@@ -4,7 +4,7 @@
 
 import os
 
-def systemdSchedule(target, description='description not provided', time=False, day=False, hourly=False, daily=False, weekly=False, pythonPath='/usr/bin/python3', user=''):
+def systemdSchedule(target, description='description not provided', time=False, day=False, hourly=False, daily=False, weekly=False, pythonPath='/usr/bin/python3', user='', path=''):
     # make the file for the systemd timer
     #parse through input to make 'OnCalendar' line:
     if hourly:
