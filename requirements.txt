@@ -1,0 +1,8 @@
+mysql-connector
+yaml
+uuid
+pandas
+json
+dateutil
+numpy
+requests
