@@ -58,7 +58,7 @@ def systemdSchedule(target, description='description not provided', time=False, 
         Persistent=true
 
         [Install]
-        WantedBy=timers.{target}""".format(desc=description, time=timeString, target=target)
+        WantedBy=timers.target""".format(desc=description, time=timeString)
     #make service
     # defaulting to 'no' on restart because a data pipeline probably shouldn't
     serviceText="""
