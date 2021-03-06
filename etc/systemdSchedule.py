@@ -74,7 +74,7 @@ def systemdSchedule(target, description='description not provided', time=False, 
     service=open('/etc/systemd/system/{target}.service'.format(target=target),'w+')
     service.write(serviceText)
     service.close()
-    timer=open('/etc/systemd/system/{target}_timer.timer'.format(target=target),'w+')
+    timer=open('/etc/systemd/system/{target}.timer'.format(target=target),'w+')
     timer.write(timerText)
     timer.close()
     #refresh and enable- should be run with 'sudo', or as root
